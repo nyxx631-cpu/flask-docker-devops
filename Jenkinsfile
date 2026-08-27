@@ -48,8 +48,8 @@ pipeline {
             steps {
                 bat """
                     docker pull %DOCKER_IMAGE%:latest
-                    docker stop flask-app || ver > nul
-                    docker rm flask-app || ver > nul
+                    FOR /f "tokens=*" %%i IN ('docker ps -q -f name=flask-app') DO docker stop %%i
+                    FOR /f "tokens=*" %%i IN ('docker ps -aq -f name=flask-app') DO docker rm %%i
                     docker run -d --name flask-app -p 5000:5000 --restart always %DOCKER_IMAGE%:latest
                 """
             }
