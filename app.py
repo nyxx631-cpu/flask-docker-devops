@@ -8,7 +8,7 @@ def home():
     return jsonify({
         "status": "online",
         "message": "DevOps Pipeline: Flask + Docker",
-        "version": "1.0.0"
+        "version": "1.0.1"
     })
 
 @app.route("/health")
