@@ -2,7 +2,6 @@ pipeline {
     agent any
 
     environment {
-        // Replace with your actual Docker Hub username
         DOCKER_IMAGE = "nikhil031020/flask-docker-app"
         IMAGE_TAG = "${env.BUILD_NUMBER}"
     }
@@ -44,6 +43,17 @@ pipeline {
                 }
             }
         }
+
+        stage('Deploy to Localhost') {
+            steps {
+                bat """
+                    docker pull %DOCKER_IMAGE%:latest
+                    docker stop flask-app || ver > nul
+                    docker rm flask-app || ver > nul
+                    docker run -d --name flask-app -p 5000:5000 --restart always %DOCKER_IMAGE%:latest
+                """
+            }
+        }
     }
 
     post {
@@ -51,7 +61,7 @@ pipeline {
             bat 'docker logout || ver > nul'
         }
         success {
-            echo "Build successful! Docker image pushed as ${DOCKER_IMAGE}:${IMAGE_TAG}"
+            echo "Pipeline succeeded! App is live at http://localhost:5000 and image pushed as ${DOCKER_IMAGE}:${IMAGE_TAG}"
         }
         failure {
             echo "Pipeline failed. Check stage logs."
