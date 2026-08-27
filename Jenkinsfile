@@ -2,6 +2,7 @@ pipeline {
     agent any
 
     environment {
+        // Replace with your actual Docker Hub username
         DOCKER_IMAGE = "nikhil031020/flask-docker-app"
         IMAGE_TAG = "${env.BUILD_NUMBER}"
     }
@@ -15,9 +16,9 @@ pipeline {
 
         stage('Run Automated Tests') {
             steps {
-                sh '''
-                    python3 -m venv venv
-                    . venv/bin/activate
+                bat '''
+                    python -m venv venv
+                    call venv\\Scripts\\activate
                     pip install -r requirements.txt
                     python -m unittest test_app.py
                 '''
@@ -26,8 +27,8 @@ pipeline {
 
         stage('Build Docker Image') {
             steps {
-                sh """
-                    docker build -t ${DOCKER_IMAGE}:${IMAGE_TAG} -t ${DOCKER_IMAGE}:latest .
+                bat """
+                    docker build -t %DOCKER_IMAGE%:%IMAGE_TAG% -t %DOCKER_IMAGE%:latest .
                 """
             }
         }
@@ -35,10 +36,10 @@ pipeline {
         stage('Push Image to Docker Hub') {
             steps {
                 withCredentials([usernamePassword(credentialsId: 'dockerhub-creds', usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
-                    sh """
-                        echo "\$DOCKER_PASS" | docker login -u "\$DOCKER_USER" --password-stdin
-                        docker push ${DOCKER_IMAGE}:${IMAGE_TAG}
-                        docker push ${DOCKER_IMAGE}:latest
+                    bat """
+                        echo %DOCKER_PASS% | docker login -u %DOCKER_USER% --password-stdin
+                        docker push %DOCKER_IMAGE%:%IMAGE_TAG%
+                        docker push %DOCKER_IMAGE%:latest
                     """
                 }
             }
@@ -47,7 +48,7 @@ pipeline {
 
     post {
         always {
-            sh 'docker logout || true'
+            bat 'docker logout || ver > nul'
         }
         success {
             echo "Build successful! Docker image pushed as ${DOCKER_IMAGE}:${IMAGE_TAG}"
